@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html>
+<head lang="en">
+  <meta charset="UTF-8">
+  <style>
+    #msglog, #messageInput {
+      border: 1px solid #ccc;
+      width: 500px;
+      height: 350px;
+      overflow-y: auto;
+      font-size: 14px;
+    }
+    #messageInput {
+      height: 80px;
+    }
+    .message {
+      line-height: 22px;
+    }
+    .message .user {
+      padding-right: 5px;
+      padding-left: 5px;
+      color: brown;
+    }
+    .sysMsg {
+      color: #c1bfbf;
+      padding-right: 5px;
+      padding-left: 5px;
+      font-size: 12px;
+    }
+    #users {
+      width: 490px;
+      padding: 0 5px 5px;
+    }
+  </style>
+</head>
+<body>
+
+  <div id="msglog">
+
+  </div>
+  <textarea name="message" id="messageInput"></textarea>
+  <br/>
+  按Enter键发送
+  <!-- <script src="/socket.io/socket.io.js"></script>
+  <script src="/js/jquery.js"></script> -->
+  <script src="https://cdn.socket.io/socket.io-1.2.0.js"></script>
+  <script src="http://code.jquery.com/jquery-1.11.1.js"></script>
+  <script>
+     $(document).ready(function(){
+      // ----------设置昵称-------------
+
+      var userId = prompt("请设置你的ID","");;
+      var roomID=prompt("请设置你的房號","");
+      var joinInfo={
+        roomID:roomID,
+        memberID:userId
+      };
+      var memberInGroups=[];
+      // ---------创建连接-----------
+      var socket = io();
+
+      // 加入房间
+      socket.on('connect', function () {
+        socket.emit('join', joinInfo);
+      });
+
+      // 监听消息
+      socket.on('message', function (newMessageInfo) {
+        // console.log('memberInfo:',memberInfo);
+        console.log('newMessageInfo',newMessageInfo);
+        appendMessage(newMessageInfo);
+        // 滚动条保持最下方
+        $('#msglog').scrollTop($('#msglog')[0].scrollHeight);
+      });
+
+      // 监听系统消息
+      socket.on('join', function (joinInfo) {
+        var message = '<div class="sysMsg">' + joinInfo.id+'加入了房间'+ '</div>';
+        console.log('joinInfo:',joinInfo);
+        $('#msglog').append(message);
+        $('#msglog').scrollTop($('#msglog')[0].scrollHeight);
+      });
+      socket.on('disconnect', function (leaveInfo) {
+        var message = '<div class="sysMsg">' + leaveInfo.message + '</div>';
+        console.log('leaveInfo:',leaveInfo);
+        $('#msglog').append(message);
+        $('#msglog').scrollTop($('#msglog')[0].scrollHeight);
+      });
+
+      // 发送消息
+      $('#messageInput').keydown(function (e) {
+        if (e.which === 13) {
+          e.preventDefault();
+          var msg = $(this).val();
+          $(this).val('');
+          var messageInfo={
+            message:msg,
+            roomID:roomID,
+            memberID:userId,
+          };
+          socket.emit('message',messageInfo);
+          // socket.send(msg);
+        }
+      });
+    });
+  function appendMessage(newMessageInfo){
+    var memberId=newMessageInfo.id;
+    var message=newMessageInfo.message;
+    var thisTime=newMessageInfo.timeStamp;
+    var memberphotoURL=newMessageInfo.photoURL;
+    var memberNickName=newMessageInfo.nickName;
+    var imgStr='<img src='+'"'+memberphotoURL+'"'+' height="64px" width="64px">';
+    $('#msglog').append($('<li>').text(memberNickName+':'+message+' '+thisTime).append($(imgStr)));
+  }
+
+  </script>
+</body>
+</html>
